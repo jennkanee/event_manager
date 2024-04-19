@@ -111,3 +111,26 @@ def test_user_base_username_invalid(username, user_base_data):
     user_base_data["username"] = username
     with pytest.raises(ValidationError):
         UserBase(**user_base_data)
+
+# Tests for password validation
+@pytest.mark.parametrize("password", [
+    "Str0ngP@ssw0rd!",  # Strong password with mix of uppercase, lowercase, numbers, and special characters
+    "G00dPassword!"
+])
+def test_user_create_password_valid(password, user_create_data):
+    user_create_data["password"] = password
+    user = UserCreate(**user_create_data)
+    assert user.password == password
+
+@pytest.mark.parametrize("password", [
+    "a" * 11,  # Password shorter than minimum allowed length
+    "password",  # Password without uppercase letters
+    "PASSWORD",  # Password without lowercase letters
+    "Password",  # Password without numbers
+    "Password123",  # Password without special characters
+    "p@ssw0rd",  # Password shorter than minimum allowed length, even with complexity
+])
+def test_user_create_password_invalid(password, user_create_data):
+    user_create_data["password"] = password
+    with pytest.raises(ValidationError):
+        UserCreate(**user_create_data)

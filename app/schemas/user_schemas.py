@@ -115,14 +115,14 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str = Field(
         ...,
-        min_length=8,
+        min_length=12,
         description="A strong password for the user's account. Must be at least 8 characters long and include uppercase and lowercase letters, a digit, and a special character.",
         example="SecurePassword123!"
     )
 
     @validator('password')
     def validate_password(cls, v):
-        if len(v) < 8:
+        if len(v) < 12:
             raise ValueError("Password must be at least 8 characters long.")
         if not re.search(r"[A-Z]", v):
             raise ValueError("Password must contain at least one uppercase letter.")

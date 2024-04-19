@@ -100,12 +100,12 @@ invalid_usernames_with_special_chars = [
 
 # Parametrized tests for invalid usernames
 @pytest.mark.parametrize("username", [
-    "a" * 51,  # One character over the maximum allowed length
+    "a" * 51,  
     " username_with_leading_space",
     "username_with_trailing_space ",
     "username with spaces",
     "username.with.dots",
-    "a",  # Username too short (assuming minimum length is 2)
+    "a",  
 ] + invalid_usernames_with_special_chars)
 def test_user_base_username_invalid(username, user_base_data):
     user_base_data["username"] = username
@@ -114,7 +114,7 @@ def test_user_base_username_invalid(username, user_base_data):
 
 # Tests for password validation
 @pytest.mark.parametrize("password", [
-    "Str0ngP@ssw0rd!",  # Strong password with mix of uppercase, lowercase, numbers, and special characters
+    "Str0ngP@ssw0rd!",  
     "G00dPassword!"
 ])
 def test_user_create_password_valid(password, user_create_data):
@@ -123,14 +123,38 @@ def test_user_create_password_valid(password, user_create_data):
     assert user.password == password
 
 @pytest.mark.parametrize("password", [
-    "a" * 11,  # Password shorter than minimum allowed length
-    "password",  # Password without uppercase letters
-    "PASSWORD",  # Password without lowercase letters
-    "Password",  # Password without numbers
-    "Password123",  # Password without special characters
-    "p@ssw0rd",  # Password shorter than minimum allowed length, even with complexity
+    "a" * 11,  
+    "password", 
+    "PASSWORD", 
+    "Password", 
+    "Password123",  
+    "p@ssw0rd", 
 ])
 def test_user_create_password_invalid(password, user_create_data):
     user_create_data["password"] = password
     with pytest.raises(ValidationError):
         UserCreate(**user_create_data)
+
+@pytest.mark.parametrize("email", [
+   "user@example.com",
+   "user!1234@example.com",
+   "user?name@example.co.uk",
+])
+def test_user_base_email_valid(email, user_base_data):
+   user_base_data["email"] = email
+   user = UserBase(**user_base_data)
+   assert user.email == email
+
+@pytest.mark.parametrize("email", [
+   "invalid_email",
+   "user@example",
+   "user@.com",
+   "@example.com",
+   "user@example..com",
+   "user@example.com@example.com",
+   "user@exam ple.com",
+])
+def test_user_base_email_invalid(email, user_base_data):
+   user_base_data["email"] = email
+   with pytest.raises(ValidationError):
+       UserBase(**user_base_data)     

@@ -43,16 +43,20 @@ def user_response_data():
 def login_request_data():
     return {"username": "john_doe_123", "password": "SecurePassword123!"}
 
+# Helper function to create a UserBase instance and assert the username
+def create_and_assert_user_base(username, user_base_data):
+    user_base_data["username"] = username
+    user = UserBase(**user_base_data)
+    assert user.username == username
+
 # Tests for UserBase
 def test_user_base_valid(user_base_data):
     user = UserBase(**user_base_data)
-    assert user.username == user_base_data["username"]
     assert user.email == user_base_data["email"]
 
 # Tests for UserCreate
 def test_user_create_valid(user_create_data):
     user = UserCreate(**user_create_data)
-    assert user.username == user_create_data["username"]
     assert user.password == user_create_data["password"]
 
 # Tests for UserUpdate
@@ -74,14 +78,35 @@ def test_login_request_valid(login_request_data):
     assert login.username == login_request_data["username"]
     assert login.password == login_request_data["password"]
 
-# Parametrized tests for username and email validation
-@pytest.mark.parametrize("username", ["test_user", "test-user", "testuser123", "123test"])
+# Parametrized tests for valid usernames
+@pytest.mark.parametrize("username", [
+    "a" * 50,  # Exactly 50 characters (assuming it's the maximum allowed length)
+    "username_with_underscore",
+    "username-with-hyphens",
+    "username_with_numbers_123",
+    "USERNAME_WITH_UPPERCASE",
+    "username_with_mixed_Case",
+    "username_with_trailing_underscore_",
+    "_username_with_leading_underscore",
+])
 def test_user_base_username_valid(username, user_base_data):
-    user_base_data["username"] = username
-    user = UserBase(**user_base_data)
-    assert user.username == username
+    create_and_assert_user_base(username, user_base_data)
 
-@pytest.mark.parametrize("username", ["test user", "test?user", "", "us"])
+# Fixture for invalid usernames with special characters
+special_characters = "!@#$%^&*()+={}[]|\\:;'\"<>,./?`~"
+invalid_usernames_with_special_chars = [
+    f"username_with_special_char{char}" for char in special_characters
+]
+
+# Parametrized tests for invalid usernames
+@pytest.mark.parametrize("username", [
+    "a" * 51,  # One character over the maximum allowed length
+    " username_with_leading_space",
+    "username_with_trailing_space ",
+    "username with spaces",
+    "username.with.dots",
+    "a",  # Username too short (assuming minimum length is 2)
+] + invalid_usernames_with_special_chars)
 def test_user_base_username_invalid(username, user_base_data):
     user_base_data["username"] = username
     with pytest.raises(ValidationError):

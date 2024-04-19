@@ -38,42 +38,67 @@ async def test_retrieve_user(async_client, user, token):
     assert response.status_code == 200
     assert response.json()["id"] == str(user.id)
 
+@pytest.mark.parametrize("field,value", [
+   ("email", "updated@example.com"),
+   ("full_name", "Updated Full Name"),
+   ("bio", "Updated bio"),
+])
 @pytest.mark.asyncio
-async def test_update_user(async_client, user, token):
-    updated_data = {"email": f"updated_{user.id}@example.com"}
-    headers = {"Authorization": f"Bearer {token}"}
-    response = await async_client.put(f"/users/{user.id}", json=updated_data, headers=headers)
-    assert response.status_code == 200
-    assert response.json()["email"] == updated_data["email"]
+async def test_update_user_field(async_client, user, token, field, value):
+   updated_data = {field: value}
+   headers = {"Authorization": f"Bearer {token}"}
+   response = await async_client.put(f"/users/{user.id}", json=updated_data, headers=headers)
+   assert response.status_code == 200
+   assert response.json()[field] == value
 
 @pytest.mark.asyncio
-async def test_update_user_email_only(async_client, user, token):
-   updated_data = {"email": "updated@example.com"}
+async def test_update_user_email_name(async_client, user, token):
+   updated_data = {
+       "email": "updated@example.com",
+       "full_name": "Updated Full Name",
+   }
    headers = {"Authorization": f"Bearer {token}"}
    response = await async_client.put(f"/users/{user.id}", json=updated_data, headers=headers)
    assert response.status_code == 200
    assert response.json()["email"] == updated_data["email"]
-   assert response.json()["bio"] == user.bio
-
-@pytest.mark.asyncio
-async def test_update_user_full_name_only(async_client, user, token):
-   updated_data = {"full_name": "Updated Full Name"}
-   headers = {"Authorization": f"Bearer {token}"}
-   response = await async_client.put(f"/users/{user.id}", json=updated_data, headers=headers)
-   assert response.status_code == 200
    assert response.json()["full_name"] == updated_data["full_name"]
-   assert response.json()["email"] == user.email
-   assert response.json()["bio"] == user.bio
 
 @pytest.mark.asyncio
-async def test_update_user_bio_only(async_client, user, token):
-   updated_data = {"bio": "Updated bio"}
+async def test_update_user_email_bio(async_client, user, token):
+   updated_data = {
+       "email": "updated@example.com",
+       "bio": "Updated bio"
+   }
    headers = {"Authorization": f"Bearer {token}"}
    response = await async_client.put(f"/users/{user.id}", json=updated_data, headers=headers)
    assert response.status_code == 200
-   assert response.json()["bio"] == updated_data["bio"]
-   assert response.json()["email"] == user.email
-   assert response.json()["full_name"] == user.full_name
+   for field, value in updated_data.items():
+       assert response.json()[field] == value
+
+@pytest.mark.asyncio
+async def test_update_user_name_bio(async_client, user, token):
+   updated_data = {
+       "full_name": "Updated Full Name",
+       "bio": "Updated bio"
+   }
+   headers = {"Authorization": f"Bearer {token}"}
+   response = await async_client.put(f"/users/{user.id}", json=updated_data, headers=headers)
+   assert response.status_code == 200
+   for field, value in updated_data.items():
+       assert response.json()[field] == value
+
+@pytest.mark.asyncio
+async def test_update_user_all_fields(async_client, user, token):
+   updated_data = {
+       "email": "updated@example.com",
+       "full_name": "Updated Full Name",
+       "bio": "Updated bio"
+   }
+   headers = {"Authorization": f"Bearer {token}"}
+   response = await async_client.put(f"/users/{user.id}", json=updated_data, headers=headers)
+   assert response.status_code == 200
+   for field, value in updated_data.items():
+       assert response.json()[field] == value
 
 @pytest.mark.asyncio
 async def test_delete_user(async_client, user, token):
